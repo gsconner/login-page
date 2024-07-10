@@ -9,7 +9,7 @@ Frontend:   ReactJS
 Database:   Postgres
 
 
-Passwords are stored as Argon2ID hashes. User/Hashes are stored in database, as are sessions. Sessions are stored in browser as cookies and expire after 1 minute.
+Passwords are stored as Argon2ID hashes. Usernames/Hashes are stored in database, as are sessions. Sessions are stored in browser as cookies and expire after 1 minute.
 
 How to run:
 
