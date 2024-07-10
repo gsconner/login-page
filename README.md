@@ -15,7 +15,7 @@ How to run:
 
 1.  Docker pull the official docker postgres image
 2.  Docker image build the go-server and webapp images
-3.  Append '<server IP> mylogin' to etc/hosts
+3.  Append 'serverIP mylogin' to etc/hosts
 4.  Run docker compose up to start the server 
 5.  To add users, execute '/server adduser' in the go-server container 
 6.  Fronted webapp is hosted on port 3000
