@@ -1,0 +1,19 @@
+name: login
+services:
+  server:
+    image: go-server
+    ports: 
+      - 8000:8000
+  postgres:
+    image: postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: server
+      POSTGRES_PASSWORD: pass
+  webapp:
+    image: webapp
+    ports: 
+      - 3000:3000

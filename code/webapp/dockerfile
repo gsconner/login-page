@@ -1,0 +1,10 @@
+FROM node:21.6.0
+WORKDIR /login-page/
+
+COPY public/ /login-page/public
+COPY src/ /login-page/src
+COPY package.json /login-page/
+
+RUN npm install
+
+CMD ["npm", "start"]

@@ -1,0 +1,13 @@
+FROM golang:1.21.5
+WORKDIR /go-server/
+
+COPY go.mod ./
+RUN go get github.com/alexedwards/argon2id
+RUN go get github.com/lib/pq
+RUN go mod download
+
+COPY *.go ./
+
+RUN go build -o /server
+
+CMD ["/server", "start"]
