@@ -10,4 +10,4 @@ COPY *.go ./
 
 RUN go build -o /server
 
-CMD ["/server", "start"]
+ENTRYPOINT ["/server"]
