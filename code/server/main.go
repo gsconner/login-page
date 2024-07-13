@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"log"
@@ -86,8 +87,7 @@ func dropUser(db *sql.DB, username string) {
 	}
 }
 
-func connectToDB() *sql.DB {
-	connStr := "postgresql://server:pass@postgres/server?sslmode=disable"
+func connectToDB(connStr string) *sql.DB {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -96,57 +96,70 @@ func connectToDB() *sql.DB {
 	return db
 }
 
-func main() {
-	args := os.Args
-	n := len(args)
+func console(db *sql.DB) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		scanner.Scan()
+		err := scanner.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+		line := scanner.Text()
 
-	if n > 1 {
+		args := strings.Split(line, " ")
+		n := len(args)
+
 		switch {
-		case args[1] == "start":
-			if n == 2 {
-				db := connectToDB()
-				Run(db)
-			} else {
-				fmt.Println("Format: start")
-			}
-		case args[1] == "users":
-			if n == 2 {
-				db := connectToDB()
+		case args[0] == "users":
+			if n == 1 {
 				listUsers(db)
 			} else {
 				fmt.Println("Format: users")
 			}
-		case args[1] == "sessions":
-			if n == 2 {
-				db := connectToDB()
+		case args[0] == "sessions":
+			if n == 1 {
 				listSessions(db)
 			} else {
 				fmt.Println("Format: sessions")
 			}
-		case args[1] == "adduser":
-			if n == 4 {
-				db := connectToDB()
-				addUser(db, args[2], args[3])
+		case args[0] == "adduser":
+			if n == 3 {
+				addUser(db, args[1], args[2])
 			} else {
 				fmt.Println("Format: adduser <username> <password>")
 			}
-		case args[1] == "dropuser":
-			if n == 3 {
-				db := connectToDB()
-				dropUser(db, args[2])
+		case args[0] == "dropuser":
+			if n == 2 {
+				dropUser(db, args[1])
 			} else {
 				fmt.Println("Format: dropUser <username>")
 			}
-		case args[1] == "help":
-			if n == 2 {
-				fmt.Printf("start - Start the server\nusers - List users in database\nsessions - List sessions in database\nadduser - Add a new user to database\ndropuser - Drop a user from database\n")
+		case args[0] == "help":
+			if n == 1 {
+				fmt.Printf("users - List users in database\nsessions - List sessions in database\nadduser <username> <password> - Add a new user to database\ndropuser <username> - Drop a user from database\n")
 			} else {
 				fmt.Println("Format: help")
 			}
 		default:
-			fmt.Println("Invalid command")
+			if args[0] != "" {
+				fmt.Println("Invalid command. Type 'help' for a list of commands.")
+			}
 		}
-	} else {
-		fmt.Println("Use argument 'start' to start the server or 'help' for a list of commands.")
 	}
+}
+
+func main() {
+	args := os.Args
+	n := len(args)
+
+	var connStr string
+	if n >= 2 {
+		connStr = args[1]
+	} else {
+		connStr = "postgresql://server:pass@postgres/server?sslmode=disable"
+	}
+
+	db := connectToDB(connStr)
+	go Run(db)
+	console(db)
 }
