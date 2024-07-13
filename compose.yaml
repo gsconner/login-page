@@ -1,21 +1,23 @@
 name: login
 services:
   server:
-    image: go-server
+    build: server
+    image: login-page/go-server
     ports: 
       - 8000:8000
     stdin_open: true
     tty: true
   postgres:
-    image: postgres
+    image: postgres:16.3
     ports:
       - 127.0.0.1:5432:5432
     volumes:
-      - ./scripts:/docker-entrypoint-initdb.d
+      - ./db:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: server
       POSTGRES_PASSWORD: pass
   webapp:
-    image: webapp
+    build: webapp
+    image: login-page/webapp
     ports: 
       - 3000:3000
