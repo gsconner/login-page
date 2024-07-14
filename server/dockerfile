@@ -10,4 +10,4 @@ COPY *.go ./
 
 RUN go build -o /server
 
-ENTRYPOINT ["/server"]
+ENTRYPOINT ["/server", "postgresql://server:pass@postgres/server?sslmode=disable"]

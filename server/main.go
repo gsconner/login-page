@@ -150,16 +150,12 @@ func console(db *sql.DB) {
 
 func main() {
 	args := os.Args
-	n := len(args)
-
-	var connStr string
-	if n >= 2 {
-		connStr = args[1]
+	if len(args) >= 2 {
+		db := connectToDB(args[1])
+		go Run(db)
+		console(db)
 	} else {
-		connStr = "postgresql://server:pass@postgres/server?sslmode=disable"
+		fmt.Printf("Please include a link to the database.")
 	}
 
-	db := connectToDB(connStr)
-	go Run(db)
-	console(db)
 }
