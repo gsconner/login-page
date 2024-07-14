@@ -11,7 +11,7 @@ function useAuth() {
             return new Promise((resolve, reject) => {
                 const reqBody = 'username=' + username + ':password=' + password
                 
-                fetch('http://mylogin:8000/login', {
+                fetch('http://localhost:8000/login', {
                     method: 'POST',
                     credentials: 'include',
                     body: reqBody
@@ -35,7 +35,7 @@ function useAuth() {
             })
         },
         logout() {
-            fetch('http://mylogin:8000/logout', {
+            fetch('http://localhost:8000/logout', {
                 method: 'POST',
                 credentials: 'include'
             }).catch(error => console.log(error))
@@ -43,7 +43,7 @@ function useAuth() {
         },
         getData() {
             return new Promise((resolve, reject) => {
-                fetch('http://mylogin:8000/secure', {
+                fetch('http://localhost:8000/secure', {
                     method: 'GET',
                     credentials: 'include'
                 }).then(response => {

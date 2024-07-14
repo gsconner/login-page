@@ -35,7 +35,7 @@ type Lock struct {
 var lockouts map[string](map[string]*Lock)
 
 func enableCORS(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "http://mylogin:3000")
+	(*w).Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
