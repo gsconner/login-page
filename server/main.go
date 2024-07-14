@@ -157,5 +157,4 @@ func main() {
 	} else {
 		fmt.Printf("Please include a link to the database.")
 	}
-
 }
