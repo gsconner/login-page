@@ -6,6 +6,5 @@ CREATE TABLE users (
 CREATE TABLE sessions (
     username varchar,
     sessid varchar,
-    ip varchar,
     expires timestamp
 );

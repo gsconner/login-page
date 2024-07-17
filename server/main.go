@@ -39,12 +39,12 @@ func listSessions(db *sql.DB) {
 
 	for rows.Next() {
 		var session Session
-		err := rows.Scan(&session.user, &session.ip, &session.id, &session.expires)
+		err := rows.Scan(&session.user, &session.id, &session.expires)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("%s %s %s %s\n", session.user, session.ip, session.id, session.expires)
+		fmt.Printf("%s %s %s\n", session.user, session.id, session.expires)
 	}
 }
 
