@@ -63,7 +63,7 @@ func endSessionCookie() http.Cookie {
 }
 
 func containsForbiddenChar(data []byte) bool {
-	forbidden := "[^A-z0-9!@#$%^&*()]"
+	forbidden := "[^A-Za-z0-9!@#$%^&*()]"
 
 	m, _ := regexp.Match(forbidden, data)
 

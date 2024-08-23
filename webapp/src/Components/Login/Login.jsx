@@ -16,7 +16,7 @@ export const Login = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         
-        const forbid = /[^A-z0-9!@#$%^&*()]/
+        const forbid = /[^A-Za-z0-9!@#$%^&*()]/
         if (username.match(forbid) || password.match(forbid)) {
             setMsg("Invalid character")
         } else {
