@@ -18,7 +18,7 @@
     flex-direction: column;
     margin: auto;
     width: 600px;
-    height: 475px;
+    height: 550px;
     margin-top: 50px;
     background: #f0f0f0;
     border-radius: 3px;
@@ -75,4 +75,17 @@
 .loading{
     margin: auto;
     font-size: 15px;
+}
+
+.modechange{
+    margin: auto
+}
+
+.signup{
+    margin: auto;
+    margin-top: 20px;
+    font-size: 18px;
+    color:#FF6633;
+    cursor: pointer;
+    user-select: none;
 }

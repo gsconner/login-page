@@ -6,34 +6,58 @@ import './Login.css'
 export const Login = () => {
     const [username, setName] = useState('')
     const [password, setPass] = useState('')
+    const [confirmPass, setConfirm] = useState('')
     const [message, setMsg] = useState(useLocation().state)
     const [loading, setLoading] = useState(false)
+    const [mode, setMode] = useState(false)
     const navigate = useNavigate();
-    const { login } = useAuth()
+    const { login, signup } = useAuth()
 
     const handleSubmit = (event) => {
         event.preventDefault();
         
-        const forbid = /[\<\>\,\.\?\[\]\|\{\}\:\=\;\'\"\/\\\-\+]/
+        const forbid = /[^A-z0-9!@#$%^&*()]/
         if (username.match(forbid) || password.match(forbid)) {
-            setMsg("You may not create a username or password with the following characters: < > , . ? [ ] | { } : = ; ' \" / \\ - +")
+            setMsg("Invalid character")
         } else {
-            setLoading(true)
-            login(username, password).then(() => {
-                navigate("/home")
-            }, (data) => {
-                setMsg(data)
-            }).finally(() => {
-                setPass('')
-                setLoading(false)
-            })
+            if (mode) {
+                if (password === confirmPass) {
+                    setLoading(true)
+                    setMsg('')
+                    signup(username, password, confirmPass).then((data) => {
+                        setMsg(data)
+                    }, (data) => {
+                        setMsg(data)
+                    }).finally(() => {
+                        setName('')
+                        setPass('')
+                        setConfirm('')
+                        setLoading(false)
+                    })
+                } else {
+                    setMsg("Password does not match")
+                }
+            } else {
+                setLoading(true)
+                setMsg('')
+                login(username, password).then(() => {
+                    navigate("/home")
+                }, (data) => {
+                    setMsg(data)
+                }).finally(() => {
+                    setName('')
+                    setPass('')
+                    setConfirm('')
+                    setLoading(false)
+                })
+            }
         }
     }
     return (
         <div className='loginpage'>
             <div className='message'>{message}</div>
             <div className='window'>
-                <div className='header'>Login</div>
+                <div className='header'>{mode ? "Sign Up" : "Login" }</div>
                 <form onSubmit={handleSubmit}>
                     <div className='inputs'>
                         <div className='input'>
@@ -54,12 +78,29 @@ export const Login = () => {
                                 onChange={(e) => setPass(e.target.value)}
                             ></input>
                         </div>
+                        {mode ?
+                            <div className='input'>
+                                <input 
+                                    type='password'
+                                    required
+                                    placeholder='Confirm Password'
+                                    value={confirmPass} 
+                                    onChange={(e) => setConfirm(e.target.value)}
+                                ></input>
+                            </div>
+                            :null
+                        }
                     </div>
                     <div className='submit'>
                         <button type='submit' className='button'>Submit</button>
                         <div className='loading'>{loading===true?"Loading...":""}</div>
                     </div>
                 </form>
+            </div>
+            <div className='modechange'>
+                <h1 onClick={() => setMode(!mode)}>
+                    <div className='signup'>{mode ? "Login" : "Sign Up" }</div>
+                </h1>
             </div>
         </div>
     )

@@ -4,9 +4,10 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +24,11 @@ type Session struct {
 	user    string
 	id      string
 	expires time.Time
+}
+
+type Arg struct {
+	name  string
+	value string
 }
 
 func enableCORS(w *http.ResponseWriter) {
@@ -54,6 +60,32 @@ func createCookie(username string, sessID string) http.Cookie {
 
 func endSessionCookie() http.Cookie {
 	return http.Cookie{Name: "sessID", Value: "", MaxAge: 0, HttpOnly: true}
+}
+
+func containsForbiddenChar(data []byte) bool {
+	forbidden := "[^A-z0-9!@#$%^&*()]"
+
+	m, _ := regexp.Match(forbidden, data)
+
+	return m
+}
+
+func readArguments(data []byte) []Arg {
+	var args []Arg
+	parameters := strings.Split(string(data), ":")
+	for _, parameter := range parameters {
+		pair := strings.Split(parameter, "=")
+		if len(pair) != 2 || containsForbiddenChar([]byte(pair[0])) || containsForbiddenChar([]byte(pair[1])) {
+			return nil
+		} else {
+			var arg Arg
+			arg.name = pair[0]
+			arg.value = pair[1]
+			args = append(args, arg)
+		}
+	}
+
+	return args
 }
 
 func validateSession(db *sql.DB, username string, sessID string) bool {
@@ -151,45 +183,65 @@ func Run(db *sql.DB) {
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(&w)
 		// Read request body
-		reqBody, err := ioutil.ReadAll(r.Body)
+		reqBody, err := io.ReadAll(r.Body)
 		if err == nil {
-			reqSplit := strings.Split(string(reqBody), ":")
-			if len(reqSplit) == 2 {
-				// Split request data into username and password
-				args := [2][]string{strings.Split(reqSplit[0], "="), strings.Split(reqSplit[1], "=")}
-				if len(args[0]) == 2 && args[0][0] == "username" &&
-					len(args[1]) == 2 && args[1][0] == "password" {
-					// Username is set to all lowercase to be case insensitive
-					username, password := strings.ToLower(args[0][1]), args[1][1]
+			args := readArguments(reqBody)
+			if len(args) == 2 &&
+				args[0].name == "username" &&
+				args[1].name == "password" {
+				// Username is set to all lowercase to be case insensitive
+				username, password := strings.ToLower(args[0].value), args[1].value
 
-					// Query the database for the specified user
-					row := db.QueryRow("SELECT * FROM users WHERE username = $1", username)
+				// Query the database for the specified user
+				row := db.QueryRow("SELECT * FROM users WHERE username = $1", username)
 
-					// If no row was found the user does not exist; if it was, compare its hash with the provided password (after hashing it as well)
-					var user User
-					err := row.Scan(&user.name, &user.hash)
-					if err != nil {
-						if err == sql.ErrNoRows {
-							w.Write([]byte("User not found"))
-						} else {
-							w.Write([]byte("Error finding user"))
-						}
+				// If no row was found the user does not exist; if it was, compare its hash with the provided password (after hashing it as well)
+				var user User
+				err := row.Scan(&user.name, &user.hash)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						w.Write([]byte("User not found"))
 					} else {
-						// Hash the provided password to compare to the user data
-						match, err := argon2id.ComparePasswordAndHash(password, user.hash)
-						if err != nil {
-							w.Write([]byte("Error finding user"))
-						} else if match {
-							// Initialize a new sessions and send back a cookie containing the sessID
-							sessID := genID()
-							cookie := createCookie(username, sessID)
-							http.SetCookie(w, &cookie)
-							startSession(db, username, sessID)
-							w.Write([]byte("Authenticated"))
-						} else {
-							w.Write([]byte("Incorrect password"))
-						}
+						w.Write([]byte("Error finding user"))
 					}
+				} else {
+					// Hash the provided password to compare to the user data
+					match, err := argon2id.ComparePasswordAndHash(password, user.hash)
+					if err != nil {
+						w.Write([]byte("Error finding user"))
+					} else if match {
+						// Initialize a new sessions and send back a cookie containing the sessID
+						sessID := genID()
+						cookie := createCookie(username, sessID)
+						http.SetCookie(w, &cookie)
+						startSession(db, username, sessID)
+						w.Write([]byte("Authenticated"))
+					} else {
+						w.Write([]byte("Incorrect password"))
+					}
+				}
+			}
+		}
+	})
+	/* Signup */
+	http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(&w)
+		// Read request body
+		reqBody, err := io.ReadAll(r.Body)
+		if err == nil {
+			args := readArguments(reqBody)
+			if len(args) == 2 &&
+				args[0].name == "username" &&
+				args[1].name == "password" {
+				// Username is set to all lowercase to be case insensitive
+				username, password := strings.ToLower(args[0].value), args[1].value
+				// Check if user is already in database
+				if UserInDB(db, username) {
+					w.Write([]byte("This username is already is use"))
+				} else {
+					// Add user
+					AddUser(db, username, password)
+					w.Write([]byte("Account created"))
 				}
 			}
 		}
